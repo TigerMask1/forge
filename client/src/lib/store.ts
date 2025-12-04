@@ -54,7 +54,7 @@ interface AppState {
   // UI state
   isSidebarCollapsed: boolean;
   isRightPanelVisible: boolean;
-  rightPanelMode: "agent" | "config" | "diff" | "chains";
+  rightPanelMode: "agent" | "config" | "diff" | "chains" | "search" | "logs";
   isCommandPaletteOpen: boolean;
   isApiSettingsOpen: boolean;
   theme: "light" | "dark";
@@ -105,7 +105,7 @@ interface AppState {
   // UI actions
   toggleSidebar: () => void;
   toggleRightPanel: () => void;
-  setRightPanelMode: (mode: "agent" | "config" | "diff" | "chains") => void;
+  setRightPanelMode: (mode: "agent" | "config" | "diff" | "chains" | "search" | "logs") => void;
   toggleCommandPalette: () => void;
   toggleApiSettings: () => void;
   setTheme: (theme: "light" | "dark") => void;

@@ -6,6 +6,7 @@ import { CodeEditor } from "@/components/CodeEditor";
 import { Terminal } from "@/components/Terminal";
 import { RightPanel } from "@/components/RightPanel";
 import { CommandPalette } from "@/components/CommandPalette";
+import { TaskDropdown } from "@/components/TaskDropdown";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +77,7 @@ export default function IDE() {
       </div>
 
       <CommandPalette />
+      <TaskDropdown />
     </div>
   );
 }

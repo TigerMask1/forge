@@ -10,6 +10,10 @@ import type {
   FileChange,
   TerminalLine,
   ApiError,
+  AgentTask,
+  AgentRun,
+  WorkflowPhase,
+  StreamingChunk,
 } from "@shared/schema";
 import { generateDefaultAgentConfig, getDefaultPromptChains } from "@shared/schema";
 
@@ -38,6 +42,14 @@ interface AppState {
   messages: Message[];
   isAgentRunning: boolean;
   currentStepId: string | null;
+  
+  // Streaming agent state
+  currentRun: AgentRun | null;
+  currentPhase: WorkflowPhase;
+  agentTasks: AgentTask[];
+  streamingContent: string;
+  isStreaming: boolean;
+  isTaskDropdownOpen: boolean;
   
   // API state
   apiSettings: ApiSettings | null;
@@ -86,6 +98,17 @@ interface AppState {
   // Agent actions
   setAgentRunning: (running: boolean) => void;
   setCurrentStep: (stepId: string | null) => void;
+  
+  // Streaming agent actions
+  setCurrentRun: (run: AgentRun | null) => void;
+  setCurrentPhase: (phase: WorkflowPhase) => void;
+  setAgentTasks: (tasks: AgentTask[]) => void;
+  updateAgentTask: (taskId: string, updates: Partial<AgentTask>) => void;
+  appendStreamingContent: (content: string) => void;
+  clearStreamingContent: () => void;
+  setIsStreaming: (streaming: boolean) => void;
+  toggleTaskDropdown: () => void;
+  setTaskDropdownOpen: (open: boolean) => void;
   
   // API actions
   setApiSettings: (settings: ApiSettings | null) => void;
@@ -177,6 +200,12 @@ export const useAppStore = create<AppState>()(
       messages: [],
       isAgentRunning: false,
       currentStepId: null,
+      currentRun: null,
+      currentPhase: "idle" as const,
+      agentTasks: [],
+      streamingContent: "",
+      isStreaming: false,
+      isTaskDropdownOpen: false,
       apiSettings: null,
       apiError: null,
       isApiConfigured: false,
@@ -481,6 +510,27 @@ export const useAppStore = create<AppState>()(
       // Agent actions
       setAgentRunning: (running) => set({ isAgentRunning: running }),
       setCurrentStep: (stepId) => set({ currentStepId: stepId }),
+      
+      // Streaming agent actions
+      setCurrentRun: (run) => set({ currentRun: run }),
+      setCurrentPhase: (phase) => set({ currentPhase: phase }),
+      setAgentTasks: (tasks) => set({ agentTasks: tasks }),
+      updateAgentTask: (taskId, updates) => {
+        set((state) => ({
+          agentTasks: state.agentTasks.map((t) =>
+            t.id === taskId ? { ...t, ...updates } : t
+          ),
+        }));
+      },
+      appendStreamingContent: (content) => {
+        set((state) => ({
+          streamingContent: state.streamingContent + content,
+        }));
+      },
+      clearStreamingContent: () => set({ streamingContent: "" }),
+      setIsStreaming: (streaming) => set({ isStreaming: streaming }),
+      toggleTaskDropdown: () => set((state) => ({ isTaskDropdownOpen: !state.isTaskDropdownOpen })),
+      setTaskDropdownOpen: (open) => set({ isTaskDropdownOpen: open }),
 
       // API actions
       setApiSettings: (settings) =>

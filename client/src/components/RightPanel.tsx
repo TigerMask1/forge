@@ -1,7 +1,7 @@
 import { Bot, Settings, GitBranch, Layers, Search, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
-import { AgentChat } from "./AgentChat";
+import { StreamingAgentChat } from "./StreamingAgentChat";
 import { AgentConfigPanel } from "./AgentConfigPanel";
 import { DiffViewer } from "./DiffViewer";
 import { PromptChainDesigner } from "./PromptChainDesigner";
@@ -57,7 +57,7 @@ export function RightPanel() {
       </div>
 
       <div className="flex-1 overflow-hidden">
-        {rightPanelMode === "agent" && <AgentChat />}
+        {rightPanelMode === "agent" && <StreamingAgentChat />}
         {rightPanelMode === "config" && <AgentConfigPanel />}
         {rightPanelMode === "diff" && <DiffViewer />}
         {rightPanelMode === "chains" && <PromptChainDesigner />}

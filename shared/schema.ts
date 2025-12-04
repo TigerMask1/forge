@@ -161,6 +161,128 @@ export const terminalLineSchema = z.object({
 });
 export type TerminalLine = z.infer<typeof terminalLineSchema>;
 
+// Task status for agent workflow
+export const taskStatusSchema = z.enum(["todo", "analyzing", "coding", "reviewing", "done", "failed"]);
+export type TaskStatus = z.infer<typeof taskStatusSchema>;
+
+// Task priority
+export const taskPrioritySchema = z.enum(["critical", "high", "medium", "low"]);
+export type TaskPriority = z.infer<typeof taskPrioritySchema>;
+
+// Agent task schema
+export const agentTaskSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  status: taskStatusSchema,
+  priority: taskPrioritySchema,
+  assignee: z.enum(["planner", "worker", "supervisor"]),
+  filePath: z.string().optional(),
+  logs: z.array(z.string()),
+  errorMessage: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  completedAt: z.string().optional(),
+});
+export type AgentTask = z.infer<typeof agentTaskSchema>;
+
+// Workflow phase schema
+export const workflowPhaseSchema = z.enum([
+  "idle",
+  "analyzing",
+  "planning", 
+  "structuring",
+  "executing",
+  "reviewing",
+  "completed",
+  "failed"
+]);
+export type WorkflowPhase = z.infer<typeof workflowPhaseSchema>;
+
+// Agent run/workflow state
+export const agentRunSchema = z.object({
+  id: z.string(),
+  projectId: z.string(),
+  phase: workflowPhaseSchema,
+  tasks: z.array(agentTaskSchema),
+  currentTaskId: z.string().nullable(),
+  userGoal: z.string(),
+  analysisResult: z.string().optional(),
+  planningResult: z.string().optional(),
+  supervisorFeedback: z.string().optional(),
+  supervisorPassCount: z.number().default(0),
+  maxSupervisorRetries: z.number().default(3),
+  startedAt: z.string(),
+  completedAt: z.string().optional(),
+  logs: z.array(z.object({
+    timestamp: z.string(),
+    level: z.enum(["info", "warn", "error", "debug"]),
+    message: z.string(),
+    phase: workflowPhaseSchema.optional(),
+  })),
+});
+export type AgentRun = z.infer<typeof agentRunSchema>;
+
+// Streaming chunk types for SSE
+export const streamingEventTypeSchema = z.enum([
+  "token",
+  "phase_change",
+  "task_update",
+  "task_complete",
+  "supervisor_feedback",
+  "error",
+  "complete",
+  "log",
+  "command_result",
+  "preview_update"
+]);
+export type StreamingEventType = z.infer<typeof streamingEventTypeSchema>;
+
+export const streamingChunkSchema = z.object({
+  type: streamingEventTypeSchema,
+  content: z.string().optional(),
+  taskId: z.string().optional(),
+  phase: workflowPhaseSchema.optional(),
+  task: agentTaskSchema.optional(),
+  error: z.string().optional(),
+  timestamp: z.string(),
+});
+export type StreamingChunk = z.infer<typeof streamingChunkSchema>;
+
+// Sandbox command types
+export const sandboxCommandTypeSchema = z.enum([
+  "read_file",
+  "write_file",
+  "delete_file",
+  "list_files",
+  "execute_shell",
+  "search_code",
+  "get_logs",
+  "lint_check",
+  "get_preview"
+]);
+export type SandboxCommandType = z.infer<typeof sandboxCommandTypeSchema>;
+
+export const sandboxCommandSchema = z.object({
+  id: z.string(),
+  type: sandboxCommandTypeSchema,
+  args: z.record(z.string(), z.any()),
+  status: z.enum(["pending", "running", "completed", "failed"]),
+  result: z.any().optional(),
+  error: z.string().optional(),
+  executedAt: z.string().optional(),
+});
+export type SandboxCommand = z.infer<typeof sandboxCommandSchema>;
+
+// Sandbox command result
+export const sandboxResultSchema = z.object({
+  success: z.boolean(),
+  data: z.any().optional(),
+  error: z.string().optional(),
+  logs: z.array(z.string()).optional(),
+})
+export type SandboxResult = z.infer<typeof sandboxResultSchema>;
+
 // Insert schemas for API
 export const insertProjectSchema = z.object({
   name: z.string().min(1, "Project name is required"),

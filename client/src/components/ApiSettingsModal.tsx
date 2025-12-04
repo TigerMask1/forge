@@ -195,7 +195,9 @@ export function ApiSettingsModal() {
     toggleApiSettings();
   };
 
-  const isValid = apiKey.trim() && (provider !== "custom" || (baseUrl.trim() && customModel.trim()));
+  const isValid = provider === "custom" 
+    ? (baseUrl.trim() && customModel.trim())
+    : apiKey.trim();
   const config = providerConfig[provider];
   const Icon = config.icon;
 
@@ -272,7 +274,7 @@ export function ApiSettingsModal() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="apiKey" className="text-sm font-medium">
-                      API Key
+                      API Key {provider === "custom" && <span className="text-gray-400 font-normal">(optional)</span>}
                     </Label>
                     {config.docsUrl && (
                       <a
@@ -324,15 +326,23 @@ export function ApiSettingsModal() {
 
                 {provider === "custom" && (
                   <div className="space-y-3">
-                    <Label htmlFor="baseUrl" className="text-sm font-medium">
-                      Base URL / Endpoint
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="baseUrl" className="text-sm font-medium">
+                        Base URL / Endpoint
+                      </Label>
+                      <a
+                        href="/colab-setup"
+                        className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                      >
+                        Get free endpoint <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
                     <div className="flex gap-2">
                       <Input
                         id="baseUrl"
                         value={baseUrl}
                         onChange={(e) => setBaseUrl(e.target.value)}
-                        placeholder="https://your-colab-endpoint.ngrok.io/v1"
+                        placeholder="https://your-colab-endpoint.gradio.live"
                         className="flex-1 font-mono text-sm"
                       />
                       <Button
@@ -347,7 +357,7 @@ export function ApiSettingsModal() {
                       </Button>
                     </div>
                     <p className="text-xs text-gray-500">
-                      For Google Colab hosted models, paste your ngrok or cloudflare tunnel URL
+                      Need a free endpoint? <a href="/colab-setup" className="text-blue-600 hover:underline">Click here</a> for Google Colab setup code
                     </p>
                   </div>
                 )}
@@ -444,15 +454,21 @@ export function ApiSettingsModal() {
                       </ol>
                     </Card>
 
-                    <Card className="p-4 space-y-2">
-                      <h4 className="font-medium text-sm">Google Colab (Custom)</h4>
-                      <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
-                        <li>Set up your model in Google Colab</li>
-                        <li>Use ngrok or cloudflare tunnels for a public URL</li>
-                        <li>Ensure your endpoint is OpenAI-compatible</li>
-                        <li>Paste your tunnel URL as the Base URL</li>
-                        <li>Enter your model name/path</li>
+                    <Card className="p-4 space-y-2 bg-blue-50 border-blue-200">
+                      <h4 className="font-medium text-sm text-blue-900">Google Colab (Free - No API Key!)</h4>
+                      <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                        <li>Visit the <a href="/colab-setup" className="underline font-medium">Free AI Setup page</a></li>
+                        <li>Copy the ready-to-use code</li>
+                        <li>Paste into Google Colab and run</li>
+                        <li>Copy the generated URL back here</li>
+                        <li>No API key needed - it's completely free!</li>
                       </ol>
+                      <a 
+                        href="/colab-setup" 
+                        className="inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:text-blue-900 mt-2"
+                      >
+                        Go to setup page <ExternalLink className="w-3 h-3" />
+                      </a>
                     </Card>
                   </div>
 

@@ -16,7 +16,9 @@ import {
   Search,
   BookOpen,
   Layers,
+  Server,
 } from "lucide-react";
+import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 
 const features = [
@@ -118,6 +120,16 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-3">
+            <Link href="/colab-setup">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <Server className="w-4 h-4 mr-2" />
+                Free AI Setup
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="sm"
@@ -205,7 +217,7 @@ export default function Home() {
           </Card>
 
           {!apiSettings && (
-            <div className="text-center">
+            <div className="text-center space-y-3">
               <Button
                 variant="outline"
                 onClick={() => toggleApiSettings()}
@@ -214,6 +226,9 @@ export default function Home() {
                 <Settings className="w-4 h-4" />
                 Connect your API to get started
               </Button>
+              <p className="text-sm text-gray-400">
+                No API key? <Link href="/colab-setup" className="text-blue-600 hover:underline">Get a free AI endpoint</Link> using Google Colab
+              </p>
             </div>
           )}
         </div>

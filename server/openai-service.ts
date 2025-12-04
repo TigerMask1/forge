@@ -58,13 +58,16 @@ function getErrorMessage(type: ApiErrorType, originalMessage: string): string {
 
 export function createOpenAIClient(settings: ApiSettings): OpenAI {
   const config: any = {
-    apiKey: settings.apiKey,
+    apiKey: settings.apiKey || "not-needed",
   };
 
   if (settings.provider === "anthropic") {
     config.baseURL = settings.baseUrl || "https://api.anthropic.com/v1";
   } else if (settings.provider === "custom") {
     config.baseURL = settings.baseUrl;
+    if (!settings.apiKey) {
+      config.apiKey = "not-needed";
+    }
   } else {
     config.baseURL = settings.baseUrl || "https://api.openai.com/v1";
   }

@@ -82,6 +82,33 @@ export class AgentOrchestrator {
     ];
 
     try {
+      // Use non-streaming for custom endpoints (like Google Colab) that may not support streaming
+      if (this.settings.provider === "custom") {
+        const response = await this.client.chat.completions.create({
+          model: this.settings.model || "gpt-4o",
+          messages,
+          max_tokens: 4096,
+          temperature: 0.7,
+          stream: false,
+        });
+
+        const content = response.choices[0]?.message?.content || "";
+        if (content) {
+          // Send the entire response as tokens in chunks for UI display
+          const chunkSize = 20;
+          for (let i = 0; i < content.length; i += chunkSize) {
+            if (this.aborted) break;
+            const chunk = content.slice(i, i + chunkSize);
+            if (onToken) onToken(chunk);
+            this.sendEvent({ type: "token", content: chunk });
+            // Small delay to create typing effect
+            await new Promise(resolve => setTimeout(resolve, 10));
+          }
+        }
+        return content;
+      }
+
+      // Use streaming for OpenAI and Anthropic which support it
       const stream = await this.client.chat.completions.create({
         model: this.settings.model || "gpt-4o",
         messages,

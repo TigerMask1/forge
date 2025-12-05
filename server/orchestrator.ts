@@ -84,26 +84,37 @@ export class AgentOrchestrator {
     try {
       // Use non-streaming for custom endpoints (like Google Colab) that may not support streaming
       if (this.settings.provider === "custom") {
+        console.log("[Custom Endpoint] Making request to:", this.settings.baseUrl);
+        console.log("[Custom Endpoint] Model:", this.settings.model);
+        console.log("[Custom Endpoint] Message preview:", userMessage.slice(0, 100));
+        
         const response = await this.client.chat.completions.create({
           model: this.settings.model || "gpt-4o",
           messages,
-          max_tokens: 4096,
+          max_tokens: 2048,
           temperature: 0.7,
           stream: false,
         });
 
+        console.log("[Custom Endpoint] Raw response:", JSON.stringify(response).slice(0, 500));
+        
         const content = response.choices[0]?.message?.content || "";
+        console.log("[Custom Endpoint] Content length:", content.length);
+        console.log("[Custom Endpoint] Content preview:", content.slice(0, 200));
+        
         if (content) {
           // Send the entire response as tokens in chunks for UI display
-          const chunkSize = 20;
+          const chunkSize = 50;
           for (let i = 0; i < content.length; i += chunkSize) {
             if (this.aborted) break;
             const chunk = content.slice(i, i + chunkSize);
             if (onToken) onToken(chunk);
             this.sendEvent({ type: "token", content: chunk });
             // Small delay to create typing effect
-            await new Promise(resolve => setTimeout(resolve, 10));
+            await new Promise(resolve => setTimeout(resolve, 5));
           }
+        } else {
+          console.log("[Custom Endpoint] WARNING: Empty content received");
         }
         return content;
       }

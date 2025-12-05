@@ -6,6 +6,8 @@ AgentForge is an advanced multi-modal autonomous coding agent platform that enab
 ## Current State
 - **Status**: Fully functional development environment with streaming agent support
 - **Last Updated**: December 2024
+- **Custom Endpoints**: Simplified orchestration mode for Google Colab and other non-streaming providers
+- **Deployment**: Ready for Render.com deployment (see RENDER_DEPLOYMENT.md)
 
 ## Key Features
 

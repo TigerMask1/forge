@@ -153,9 +153,16 @@ export async function registerRoutes(
 
       // Set up SSE headers
       res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
       res.setHeader("Connection", "keep-alive");
       res.setHeader("X-Accel-Buffering", "no");
+      res.setHeader("Content-Encoding", "none");
+      res.flushHeaders();
+      
+      // Disable Nagle's algorithm for real-time delivery
+      if (res.socket) {
+        res.socket.setNoDelay(true);
+      }
 
       // Create and run orchestrator
       const orchestrator = createOrchestrator(

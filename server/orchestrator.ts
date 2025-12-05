@@ -53,6 +53,10 @@ export class AgentOrchestrator {
       timestamp: createTimestamp(),
     };
     this.res.write(`data: ${JSON.stringify(event)}\n\n`);
+    // Ensure immediate delivery of SSE events
+    if (typeof (this.res as any).flush === 'function') {
+      (this.res as any).flush();
+    }
   }
 
   private log(level: "info" | "warn" | "error" | "debug", message: string) {
@@ -103,6 +107,7 @@ export class AgentOrchestrator {
         console.log("[Custom Endpoint] Content preview:", content.slice(0, 200));
         
         if (content) {
+          console.log("[Custom Endpoint] Sending", Math.ceil(content.length / 50), "token chunks");
           // Send the entire response as tokens in chunks for UI display
           const chunkSize = 50;
           for (let i = 0; i < content.length; i += chunkSize) {
@@ -110,9 +115,9 @@ export class AgentOrchestrator {
             const chunk = content.slice(i, i + chunkSize);
             if (onToken) onToken(chunk);
             this.sendEvent({ type: "token", content: chunk });
-            // Small delay to create typing effect
-            await new Promise(resolve => setTimeout(resolve, 5));
+            console.log("[Custom Endpoint] Sent token chunk:", i, "/", content.length);
           }
+          console.log("[Custom Endpoint] All token chunks sent");
         } else {
           console.log("[Custom Endpoint] WARNING: Empty content received");
         }
@@ -147,6 +152,13 @@ export class AgentOrchestrator {
 
   async execute(context: { files?: { path: string; content: string }[] }): Promise<void> {
     try {
+      // For custom endpoints (like Google Colab), use simplified single-phase execution
+      // This is faster and more reliable for simpler models
+      if (this.settings.provider === "custom") {
+        await this.simplifiedExecute(context);
+        return;
+      }
+
       await this.analyzePhase(context);
       if (this.aborted) return;
 
@@ -162,6 +174,31 @@ export class AgentOrchestrator {
       await this.reviewPhase(context);
       if (this.aborted) return;
 
+      this.setPhase("completed");
+      this.sendEvent({ type: "complete" });
+    } catch (error: any) {
+      this.setPhase("failed");
+      this.sendEvent({ type: "error", error: error.message });
+    }
+  }
+
+  // Simplified execution for custom endpoints - single AI call instead of multi-phase
+  private async simplifiedExecute(context: { files?: { path: string; content: string }[] }): Promise<void> {
+    this.setPhase("executing");
+
+    const filesContext = context.files
+      ?.slice(0, 3)
+      .map(f => `### ${f.path}\n\`\`\`\n${f.content.slice(0, 500)}\n\`\`\``)
+      .join("\n\n") || "";
+
+    const systemPrompt = `You are a helpful coding assistant. Provide clear, concise responses.
+When asked to create code, provide the complete implementation with file paths.
+Format code blocks with the language name, like: \`\`\`javascript`;
+
+    const userPrompt = `${this.run.userGoal}${filesContext ? `\n\nContext files:\n${filesContext}` : ""}`;
+
+    try {
+      await this.streamChat(systemPrompt, userPrompt);
       this.setPhase("completed");
       this.sendEvent({ type: "complete" });
     } catch (error: any) {

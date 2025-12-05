@@ -9,6 +9,7 @@ import {
   Sparkles,
   Square,
   ListTodo,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -101,7 +102,14 @@ function ChatMessage({ message, isStreaming }: ChatMessageProps) {
         </div>
         <div className="text-sm">
           {isStreaming && !isUser ? (
-            <TypewriterText content={message.content} />
+            message.content ? (
+              <span className="whitespace-pre-wrap">{message.content}</span>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Thinking...</span>
+              </div>
+            )
           ) : (
             <span className="whitespace-pre-wrap">{message.content}</span>
           )}
